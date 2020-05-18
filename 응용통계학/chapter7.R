@@ -223,8 +223,9 @@ df %>%
         geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2, lwd = 1.5)
 
 
-# pr 7.3 
 
+
+# pr 7.3 
 
 f <- function(m, n, mu0, sigma){
         mu <- c(seq(450, 650, 10))
