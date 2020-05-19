@@ -174,20 +174,20 @@ se
 library(boot)
 library(bootstrap)
 
-theta.boot <- function(dat, ind)
+theta.boot <- function(dat, ind) # dat : 원 데이터, ind : R (반복수) 
         { 
-        y <- dat[ind, 1]
+        y <- dat[ind, 1] 
         z <- dat[ind, 2]
         mean(y)/mean(z)
 }
 
 y <- patch$y
 z <- patch$z
+y
 dat <- cbind(y, z)
 
 boot.obj <- boot(dat, statistic = theta.boot, R = 2000)
 boot.obj
-
 boot.ci(boot.obj, type = c('basic', 'norm', 'perc'))
 
 # bootstrap confidence intervals 
@@ -208,6 +208,34 @@ library(boot)
 boot.obj <- boot(law, R = 2000, statistic = function(x, i){cor(x[i, 1], x[i, 2])})
 boot.ci(boot.obj, type = c('basic', 'norm', 'perc'))
 # percentile, normal CI는 표본분포가 근사적으로 정규분포일 때 비슷해진다. 
+
+
+# pr 8.5 
+library(boot)
+aircondit
+
+n <- nrow(aircondit)
+B <- 2000
+theta.b <- numeric(B)
+theta.hat <- mean(aircondit$hours)
+
+for (b in 1:B) {
+        i <- sample(1:n, size = n, replace = T)
+        x <- aircondit$hours[i]
+        theta.b[b] <- mean(x) 
+}
+bias <- mean(theta.b-theta.hat)
+se <- sd(theta.b)
+
+bias
+se
+
+boot.obj <- boot(aircondit, R = 2000, statistic = function(x, ind){mean(x[ind, 1])})
+boot.ci(boot.obj, type = c('basic', 'norm', 'perc'))
+
+
+
+
 
 
 # ex 8.11
@@ -255,7 +283,74 @@ ci
 
 
 
-# 8.13 
+# cross validation 
+
+# ex 8.16
+
+library(DAAG)
+head(ironslag)
+a <- seq(10, 40, 0.1)
+
+L1 <- lm(magnetic~chemical, data = ironslag)
+plot(ironslag$chemical, ironslag$magnetic, main = 'linear', pch = 16)
+yhat1 <- L1$coef[1]+L1$coef[2]*a
+lines(a, yhat1, lwd = 2)
+
+L2 <- lm(magnetic~chemical+I(chemical^2), data = ironslag)
+plot(ironslag$chemical, ironslag$magnetic, main = 'Quadratic', pch = 16)
+yhat2 <- L2$coef[1]+L2$coef[2]*a+L2$coef[3]*a^2
+lines(a, yhat2, lwd = 2)
+
+L3 <- lm(log(magnetic)~chemical, data = ironslag)
+plot(ironslag$chemical, ironslag$magnetic, main = 'Exponential', pch = 16)
+logyhat3 <- L3$coef[1]+L3$coef[2]*a
+yhat3 <- exp(logyhat3)
+lines(a, yhat3, lwd = 2)
+
+L4 <- lm(log(magnetic)~log(chemical), data = ironslag)
+plot(log(ironslag$chemical), log(ironslag$magnetic), main = 'Log-Log', pch = 16)
+logyhat4 <- L4$coef[1]+L4$coef[2]*log(a)
+lines(log(a), logyhat4, lwd = 2)
+
+
+# ex 8.17
+
+n <- length(ironslag)
+e1 <- e2 <- e3 <- e4 <- numeric(n)
+
+attach(ironslag)
+for (k in 1:n) {
+        y <- magnetic[-k]
+        x <- chemical[-k]
+        
+        J1 <- lm(y~x)
+        yhat1 <- J1$coef[1]+J1$coef[2]*chemical[k]
+        e1[k] <- magnetic[k]-yhat1
+        
+        J2 <- lm(y~x+I(x^2))
+        yhat2 <- J2$coef[1]+J2$coef[2]*chemical[k]+J2$coef[3]*chemical[k]^2
+        e2[k] <- magnetic[k]-yhat2
+        
+        J3 <- lm(log(y)~x)
+        logyhat3 <- J3$coef[1]+J3$coef[2]*chemical[k]
+        yhat3 <- exp(logyhat3)
+        e3[k] <- magnetic[k]-yhat3
+        
+        J4 <- lm(log(y)~log(x))
+        logyhat4 <- J4$coef[1]+J4$coef[2]*log(chemical[k])
+        yhat4 <- exp(logyhat4)
+        e4[k] <- magnetic[k]-yhat4
+        
+}
+c(mean(e1^2), mean(e2^2), mean(e3^2), mean(e4^2))
+
+par(mfrow = c(2,2))
+plot(L2)
+
+
+
+J5 <- lm(chemical~magnetic+poly(magnetic, 2)) # orthogonal polynomial 
+plot(J5)
 
 
 
