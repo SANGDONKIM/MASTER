@@ -1,0 +1,184 @@
+---
+title: "assignment4"
+author: "Sang Don Kim"
+output:
+  word_document: default
+  html_document: default
+mainfont: NanumGothic
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message=F, warning=F,fig.align = "center")
+```
+
+
+```{r}
+library(ISLR)
+library(tidyverse)
+library(GGally)
+library(MASS)
+library(lattice)
+library(DAAG)
+library(conflicted)
+```
+
+
+
+
+
+### 5.1
+
+```{r}
+s <- matrix(c(1.0, -0.5, -0.5, 
+              -0.5, 1.0, -0.5,
+              0.5, -0.5, 1.0), byrow = T, nrow = 3)
+mu <- c(0, 1, 2)
+x <- mvrnorm(n = 200, mu = mu, Sigma = s)
+x <- data.frame(x)
+ggpairs(x)
+```
+
+
+
+
+
+### 5.2
+
+```{r}
+theme_set(theme_bw())
+
+
+my_fn <- function(data, mapping, method="loess", ...){
+      p <- ggplot(data = data, mapping = mapping) + 
+      geom_point() + 
+      geom_smooth(method=method, ...)
+      p
+    }
+ggpairs(iris[101:150, 1:4], lower = list(continuous = my_fn))
+
+```
+
+
+
+
+
+### 5.7
+
+```{r}
+x <- crabs$CW*crabs$CL
+
+parallelplot(~crabs[4:8]/sqrt(x) | sp*sex, crabs)
+```
+
+
+
+
+
+
+
+
+### 5.8
+
+```{r}
+attach(leafshape17)
+f <- function(a, v) {
+        v[1]/sqrt(2) + v[2]*sin(a)+v[3]*cos(a)
+}
+
+x <- cbind(bladelen, petiole, bladewid)
+n <- nrow(x)
+mins <- apply(x, 2, min)
+maxs <- apply(x, 2, max)
+r <- maxs-mins
+y <- sweep(x, 2, mins)
+y <- sweep(y, 2, r, '/')
+x <- 2*y-1
+
+plot(0, 0, xlim = c(-pi, pi), ylim = c(-3, 3), xlab = 't', ylab = 'andrews curves', main = '', type = 'n')
+
+a <- seq(-pi, pi, len = 101)
+dim(a) <- length(a)
+for (i in 1:n) {
+        g <- arch[i] + 1
+        y <- apply(a, MARGIN = 1, FUN = f, v=x[i,])
+        lines(a, y, lty = 2, col = g)
+}
+detach(leafshape17)
+```
+
+
+
+
+
+### 5.14
+
+
+
+
+#### (a)
+
+```{r}
+select <- dplyr::select
+str(Hitters)
+
+hitter <- Hitters %>% 
+        select(-Salary) %>% 
+        mutate(League = as.integer(League), Division=as.integer(Division), NewLeague=as.integer(NewLeague)) %>% 
+  mutate(League = League -1, Division = Division -1, NewLeague = NewLeague -1)
+```
+
+
+
+
+
+
+#### (b)
+
+```{r}
+n <- nrow(hitter)
+x <- scale(hitter)
+s <- cov(x)
+e <- eigen(s)
+lam <- e$values
+P <- e$vectors
+
+plot(lam, type = 'b', xlab = 'eigenvalues', main = '')
+tab <- rbind(lam/sum(lam), cumsum(lam)/sum(lam))
+tab
+
+```
+
+
+
+
+
+#### (c)
+
+```{r}
+z <- x%*%P
+head(z, n = 5)
+
+```
+
+
+
+
+
+#### (d)
+
+```{r}
+plot(z[,1], z[,2], xlab = 'PC1', ylab = 'PC2', main = '')
+abline(h=0, v=0)
+
+```
+
+
+
+
+
+#### (e)
+
+
+
+
+
+

@@ -1,0 +1,101 @@
+---
+title: "Untitled"
+author: "Sang Don Kim"
+output: word_document
+---
+
+
+```{r, message=F, error=F}
+library(tidyverse)
+theme_set(theme_bw())
+
+```
+
+## pr 7.1 
+
+```{r}
+
+n <- 20
+m <- 1000
+
+f <- function(k) {
+        kmean <- numeric(m)
+        for (i in 1:m) {
+                x <- sort(rcauchy(n))
+                kmean[i] <- sum(x[(k+1):(n-k)])/(n-2*k)
+                }
+        mse.est <- mean(kmean^2)
+        se.est <- sqrt(mean((kmean-mean(kmean))^2))/sqrt(m)
+        return(c(mse.est, se.est))
+}
+
+
+result <- matrix(0, 9, 3)
+for (i in 1:9) {
+        result[i,1] <- i
+        result[i,c(2,3)] <- f(i)
+}
+
+colnames(result) <- c('k', 'mean', 'se')
+result
+
+```
+
+
+## pr 7.3 
+
+```{r, message=F, error=F}
+
+f <- function(m, n, mu0, sigma){
+        mu <- c(seq(450, 650, 10))
+        M <- length(mu)
+        power <- numeric(M)
+        pvalues <- numeric(m)
+        for (i in 1:M) {
+                mu1 <- mu[i]
+                for (j in 1:m) {
+                        x <- rnorm(n, mean = mu1, sd = sigma)
+                        ttest <- t.test(x, alternative = 'greater', mu = mu0)
+                        pvalues[j] <- ttest$p.value
+                }
+                power[i] <- mean(pvalues<=0.05)
+                se <- sqrt(power*(1-power)/m)
+        }
+        data.frame(mean = mu, power = power, upper = power + 2*se, lower = power-2*se)
+}
+
+dat1 <- cbind(f(m=1000, n=10, mu0=500, sigma=100), n=rep(10, 21))
+dat2 <- cbind(f(m=1000, n=20, mu0=500, sigma=100), n=rep(20, 21))
+dat3 <- cbind(f(m=1000, n=30, mu0=500, sigma=100), n=rep(30, 21))
+dat4 <- cbind(f(m=1000, n=40, mu0=500, sigma=100), n=rep(40, 21))
+dat5 <- cbind(f(m=1000, n=50, mu0=500, sigma=100), n=rep(50, 21))
+
+dat <- rbind(dat1, dat2, dat3, dat4, dat5)
+
+dat %>% 
+        ggplot(aes(x=mean, y=power, group = n, color = n))+
+        geom_line()+
+        geom_vline(xintercept = 500, lty = 2)+
+        geom_hline(yintercept = c(0, 0.05), lty = 1:2)+
+        geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2, lwd = 1.5)
+
+```
+
+
+
+```{r, message=F}
+
+n <- 20
+m <- 1000
+
+CL1 <- numeric(m)
+CL2 <- numeric(m)
+
+for (i in 1:m) {
+        x <- rchisq(n, df = 2)
+        CL1[i] <- mean(x)-qt(0.975, df = n-1)*sd(x)/sqrt(n)
+        CL2[i] <- mean(x)-qt(0.025, df = n-1)*sd(x)/sqrt(n)
+}
+mean(CL1<2&CL2>2)
+
+```

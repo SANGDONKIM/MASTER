@@ -1,5 +1,8 @@
 # Metropolis-Hastings sampler 
 
+
+# ex 11.1
+
 f <- function(x, sigma){
         if (any(x<0)) return(0)
         stopifnot(sigma>0)
@@ -9,60 +12,63 @@ f <- function(x, sigma){
 
 m <- 10000
 sigma <- 4
-x <- numeric(m)
-x[1] <- rchisq(1, df = 1) # 초기값
+x <- numeric(m) # theta의 값 10000개 p(theta|x)를 구해야 하므로 
+x[1] <- rchisq(1, df = 1) # 제안 분포에서 초기값 생성 
 k <- 0
 u <- runif(m)
 
 for (i in 2:m) {
-        xt <- x[i-1]
-        y <- rchisq(1, df = xt)
-        num <- f(y, sigma)*dchisq(xt, df = y)
-        den <- f(xt, sigma)*dchisq(y, df = xt)
-        if (u[i] <= num/den) 
-                x[i] <- y else {
+        xt <- x[i-1] # theta_t-1
+        y <- rchisq(1, df = xt) # 제안 분포 : support가 비슷한 분포가 좋음
+        num <- f(y, sigma)*dchisq(xt, df = y) # t 시점 posterior
+        den <- f(xt, sigma)*dchisq(y, df = xt) # t-1시점 posterior
+        if (u[i] <= num/den) {
+                x[i] <- y
+        } else {
                 x[i] <- xt
                 k <- k+1
                 }
-        }
+}
 print(k) # reject 갯수 
+k/m # 기각 비율이 너무 높음
+
+index <- 3000:10000
+y1 <- x[index]
+plot(index, y1, type = 'l', main = '', ylab = 'x') # random walk 형태면 mcmc를 실패했다고 볼 수 있음   
 
 
 # ex 11.2
 
-b <- 2001 # 앞에 2000개를 임의로 버림 
+b <- 2001 # 앞에 2000개를 임의로 버림.  
 y <- x[b:m]
+
 a <- ppoints(100); a # 백분위수 계산 
 QR <- sigma*sqrt(-2*log(1-a)); QR # 이론적 랄리분포 quantile
-Q <- quantile(y, a) # 경험적 랄리 분포 quantile
+
+Q <- quantile(y, a);Q # 경험적 랄리 분포 quantile
 
 qqplot(QR, Q, main = '', cex = 0.5, xlab = 'Rayleigh Quantiles', ylab = 'Sample Quantiles')
 abline(0,1) 
 
 hist(y, breaks = 'scott', main = '', xlab = '', freq = F)
-lines(QR, f(QR, 4))
+lines(QR, f(QR, 4)) # f(x, sigma) : 이론적 랄리분포 
+
 
 
 # pr 11.3
 
-f <- function(x, theta, eta){
-        return(1/theta*pi*(1+((x-eta)/theta)^2))
-}
-
-
 m <- 10000
 x <- numeric(m)
-x[1] <- rnorm(1) # 초기값
+set.seed(1)
+x[1] <- rnorm(1) # common support를 가지는 제안분포
 k <- 0
 u <- runif(m)
-theta = 1
-eta = 0
-
+set.seed(1)
 for (i in 2:m) {
         xt <- x[i-1]
         y <- rnorm(1)
-        num <- f(y, theta, eta)
-        den <- f(xt, theta, eta)
+        num <- dcauchy(y, location = 0, scale = 1)*dnorm(xt)
+        den <- dcauchy(xt, location = 0, scale = 1)*dnorm(y)
         if (u[i] <= num/den) {
                 x[i] <- y
         } else {
@@ -70,18 +76,47 @@ for (i in 2:m) {
                 k <- k+1
         }
 }
-print(k) # reject 갯수 
+print(k)  
 
 
 b <- 1001 # 앞에 1000개를 임의로 버림 
 y <- x[b:m]
 a <- ppoints(10); a # 십분위수 계산 
 
-QR <- qt(a, df = 1) # theoretical
+QR <- qt(a, df = 1); QR # theoretical
 Q <- quantile(y, a) # empirical
 
 qqplot(QR, Q, main = '', cex = 0.5, xlab = 'Cauchy Quantiles', ylab = 'Sample Quantiles')
 abline(0,1) 
+
+
+
+set.seed(1)
+m <- 10000
+x <- numeric(m)
+set.seed(1)
+x[1] <- rnorm(1) # common support를 가지는 제안분포
+k <- 0
+u <- runif(m)
+
+
+# metropolis sampler (if proposal distribution is symm)
+set.seed(1)
+for (i in 2:m) {
+        xt <- x[i-1]
+        y <- rnorm(1)
+        num <- dcauchy(y, location = 0, scale = 1)
+        den <- dcauchy(xt, location = 0, scale = 1)
+        if (u[i] <= num/den) {
+                x[i] <- y
+        } else {
+                x[i] <- xt
+                k <- k+1
+        }
+}
+print(k)  
+
+
 
 
 
@@ -300,7 +335,7 @@ d <- matrix(c(1,3,5,7,9,
               3,5,7,10,11,
               4,5,2,5,7), byrow = T, ncol = 5, nrow = 4)
 
-d
+
 psi <- t(apply(d, 1, cumsum))
 psi
 for (i in 1:nrow(psi)) {

@@ -1,0 +1,133 @@
+---
+title: "Untitled"
+author: "Sang Don Kim"
+output: word_document
+---
+```{r, message=F, error=F}
+library(boot)
+library(MASS)
+library(bootstrap)
+library(broom)
+```
+
+# pr 9.4 
+
+```{r}
+mam <- MASS::mammals
+
+dat <- data.frame(body = log(mam$body), brain = log(mam$brain))
+
+stats <- function(dat, i){
+        x <- dat[i, 1]
+        y <- dat[i, 2]
+        Lb <- lm(y~x)
+        s <- summary(Lb)$sigma
+        c(Lb$coefficients[1], slope = Lb$coefficients[2], s=s)
+}
+set.seed(1)
+boot.out <- boot(dat, statistic = stats, R = 2000)
+
+boottbl <- broom::tidy(boot.out)
+
+regstats <- function(dat, i){
+        ystar <- dat$yhat[i]+dat$r[i]
+        xstar <- dat$x[i]
+        Lnew <- lm(ystar~xstar)
+        Lnew$coefficients
+}
+
+y <- log(mammals$brain)
+x <- log(mammals$body)
+L <- lm(y~x)
+r <- rstandard(L, sd = 1)
+r <- r-mean(r)
+df <- data.frame(r = r, x = x, yhat = L$fitted.values)
+
+set.seed(1)
+boot.obj <- boot(data = df, statistic = regstats, R = 2000)
+
+
+broom::tidy(boot.out)
+broom::tidy(boot.obj)
+```
+
+
+# pr 9.5 
+
+```{r}
+m <- 200
+
+f.boot <- function(dat, i){
+        x <- dat[i, 'x']
+        y <- dat[i, 'y']
+        L <- lm(y~x)
+        r <- mean((y-L$fitted.values)^2)
+        return(r)
+} # bootstap sample 하나당 return이 나오기 때문에 r[i]를 지정해주면 안됨. 
+
+dat <- matrix(rnorm(m*2), m, 2)
+colnames(dat) <- c('x', 'y')
+
+boot.out <- boot(dat, f.boot, R = 2000)
+
+boot.out
+```
+
+
+# 10.3
+
+```{r}
+attach(chickwts)
+
+x1 <- sort(weight[feed == 'soybean']) # feed = 'soybean' 인 weight 값
+x2 <- sort(weight[feed == 'linseed']) # feed = 'linseed'인 weight 값
+
+detach(chickwts)
+
+
+# cramer von Mises test : shuffle 하고 통계량을 반복적으로 구한 다음 p-value 계산 
+
+stat <- function(x, y){
+        x <- sort(x)
+        y <- sort(y)
+        z <- c(x, y)
+        n <- length(x)
+        m <- length(y)
+        
+        d <- rank(z)
+        r <- d[1:n]
+        s <- d[(n+1):(n+m)]
+        i <- 1:n
+        j <- 1:m
+        
+        u <- n*sum((r-i)^2) + m*sum((s-j)^2)
+        return (u/(n*m*(n+m))-(4*m*n-1)/(6*(n+m)))
+}
+
+
+R <- 999
+K <- 1:26
+f <- function(x, y){
+        z <- c(x, y)
+        t0 <- stat(x, y) # original
+
+        n <- length(x)
+        m <- length(y)
+
+        reps <- numeric(R)
+        
+        for (i in 1:R) {
+                k <- sample(K, size = 14, replace = F) # 26개 중에 14개 비복원 
+                dat <- z[k]
+                x1 <- dat[1:n]
+                y1 <- dat[(n+1):m]
+                reps[i] <- stat(x1, y1)
+        }
+        
+        p <- (sum(c(t0, reps)>=t0)+1)/(R+1)  
+        return(p)
+}
+f(x1,x2)
+```
+
+
