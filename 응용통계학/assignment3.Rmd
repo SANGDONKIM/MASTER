@@ -1,0 +1,77 @@
+---
+title: "응용통계학 과제3"
+author: "Sang Don Kim"
+output: word_document
+---
+
+### 4.1 
+
+```{r}
+N <- 20
+p <- 1/2
+
+x <- rep(0,500);
+x[1] <- 10
+
+for (i in 2:500) {
+        if (x[i-1]==0||x[i-1]==N) {
+                x[i] <- x[i-1]
+        }
+        else{
+                x[i] <- x[i-1]+sample(c(1,-1), 1, prob=c(p, 1-p))
+                
+        }
+}
+
+plot(x, type = 'l', ylim = c(0, N), ylab = 'dollers')
+
+```
+
+
+### 4.2
+
+```{r}
+
+alpha <- 1
+beta <- 1
+lambda <- 2
+t0 <- 10
+n <- numeric(1000)
+Y <- numeric(1000)
+for (i in 1:1000) {
+        Yn <- rexp(1000, lambda)
+        Xn <- cumsum(Yn)
+        n[i] <- max(which(Xn<=t0))
+        Y[i] <-sum(rgamma(n[i], shape = alpha, rate = beta)) 
+}
+c(mean(Y), alpha*lambda*t0)         
+c(var(Y), lambda*t0*(alpha/beta^2+(alpha/beta)^2))        
+
+
+```
+
+
+### 4.3
+
+```{r}
+lambda <- 3
+upper <- 100
+
+
+Y <- numeric(1000)
+for (i in 1:1000) {
+        N <- rpois(1, lambda*upper)
+        
+        Tn <- rexp(N, lambda) 
+        Sn <- cumsum(Tn) 
+        Un <- runif(N)
+        
+        keep <- (Un <= (2*Sn+2)/lambda)
+        Y[i] <-  sum(Sn[keep]<=5 & Sn[keep]>4)
+        
+}
+
+mean(Y)
+var(Y)
+
+```

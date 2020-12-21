@@ -1,0 +1,77 @@
+---
+title: "과제1_응용통계_김상돈"
+author: "Sang Don Kim"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+---
+
+```{r, warning=F, message=F}
+library(tidyverse)
+library(MASS)
+```
+
+
+### 1.1, 1.2 
+
+
+```{r }
+Sys.setlocale('LC_ALL','C')
+set.seed(11)
+x <- rt(n=100, df=4)
+truehist(x)
+curve(dt(x, df=4),add = T)
+
+```
+
+
+
+
+
+
+### 1.7
+
+
+| 변수명|변수 설명 |
+|--|--|
+|manufacturer| 제조회사|
+|displ| 배기량|
+|cyl| 실린더 개수|
+|hwy| 고속도로 연비|
+|class| 자동차 종류| 
+|drv| 구동방식 f = front-wheel drive, r = rear wheel drive, 4 = 4wd|
+|model| 자동차 모델명|
+|year| 생산연도|
+|trans| 변속기 종류| 
+|cty| 도시 연비| 
+|f1| 연료 종류| 
+
+```{r, messange = F}
+theme_set(theme_bw())
+
+head(mpg)
+glimpse(mpg)
+```
+
+
+
+
+
+
+### ex 1.14
+
+
+```{r}
+mpg %>% 
+        ggplot(aes(x=displ, y=hwy))+
+        geom_point()+
+        facet_wrap(~class)
+
+mpg %>% 
+        ggplot(aes(x=displ, y=hwy, color=drv))+
+        geom_point()
+```
+
+

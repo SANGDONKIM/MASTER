@@ -1,0 +1,70 @@
+---
+title: "응용통계학 과제 #10"
+author: "Sang Don Kim"
+output: word_document
+
+---
+
+# pr 12.2
+
+```{r}
+n <- 500
+set.seed(1)
+x <- rnorm(n)
+
+a <- hist(x, breaks = 'sturge', prob = T)
+b <- hist(x, breaks = 'scott', prob = T)
+c <- hist(x, breaks = 'fd', prob = T)
+
+f <- dnorm(x)
+
+m <- min(x)
+M <- max(x)
+
+h1 <- (M-m)/(1+log2(n)); h1
+h2 <- 3.49*sd(x)*n^(-1/3); h2
+h3 <- 2*IQR(x)*n^(-1/3); h3
+
+
+ # 각 빈별 E[(f -fhat)^2]
+
+```
+
+
+
+# pr 12.8
+
+```{r}
+library(gss)
+data("buffalo")
+
+par(mar=c(1,1,1,1))
+par(mfrow = c(4,2))
+
+for (i in 1:4) {
+        plot(density(buffalo, bw = i, kernel = 'gaussian'), main = 'Gaussian')
+        plot(density(buffalo, bw = i, kernel = 'biweight'), main = 'biweight')
+}
+
+```
+
+# pr 12.10
+
+```{r}
+x <- precip
+xx <- c(x, -x)
+g <- density(xx, bw = bw.nrd0(x))
+
+summary(x)
+a <- seq(0, 68, 0.01)
+ghat <- approx(g$x, g$y, xout = a)
+fhat <- 2*ghat$y
+
+bw <- paste('Bandwidth = ', round(g$bw, 5))
+plot(a, fhat, type = 'l', xlim = c(-5, 70), main = '', xlab = bw, ylab = 'density')
+abline(v=0)
+lines(density(x), lty = 3)
+
+plot(density(x, bw = bw.nrd0(x), from = 0), main = '')
+plot(density(x, bw = bw.nrd0(x), cut = 0), main = '')
+```

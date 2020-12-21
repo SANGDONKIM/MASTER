@@ -1,0 +1,79 @@
+---
+title: "Untitled"
+author: "Sang Don Kim"
+number_selection: yes
+output:
+  word_document: default
+  html_document: default
+mainfont: NanumGothic
+---
+
+```{r}
+library(bootstrap)
+library(boot)
+```
+<br><br><br><br>
+
+## pr 8.1
+```{r}
+n <- nrow(law)
+theta.hat <- cor(law$LSAT, law$GPA)
+theta.b <- numeric(n)
+
+for (i in 1:n) {
+        LSAT <- law$LSAT[-i]
+        GPA <- law$GPA[-i]
+        theta.b[i] <- cor(LSAT, GPA) 
+}
+
+bias <- (n-1)*(mean(theta.b)-theta.hat)
+se <- sqrt((n-1)/n*sum((theta.b-mean(theta.b))^2))
+bias
+se
+```
+<br><br><br><br>
+
+## pr 8.4
+```{r}
+n <- nrow(aircondit)
+B <- 2000
+theta.b <- numeric(B)
+theta.hat <- 1/mean(aircondit$hours)
+
+for (b in 1:B) {
+        i <- sample(1:n, size = n, replace = T)
+        x <- aircondit$hours[i]
+        theta.b[b] <- 1/mean(x) 
+}
+bias <- mean(theta.b-theta.hat)
+se <- sd(theta.b)
+
+bias
+se
+```
+<br><br><br><br>
+
+## pr 8.5
+```{r}
+boot.obj <- boot(aircondit, R = 2000, statistic = function(x, ind){mean(x[ind, 1])})
+boot.ci(boot.obj, type = c('basic', 'norm', 'perc'))
+```
+<br><br>
+
+1. standard normal bootstrap CI 
+중심극한 정리를 이용하므로 몇가지 전제가 있어야 성립한다. 
+- $\hat{\theta}$가 표본평균이어야 한다.
+- $\hat{\theta}$이 비편향 추정량이어야 한다. 
+- sample size가 커야 한다. 
+<br><br>
+
+2. basic bootstrap CI
+$\boldsymbol{\alpha}/2$ quantile 값에 대한 추정치를 구하므로서 신뢰구간을 계산하므로 quantile 값을 정확하게 추정하기 위해서는 skewed 되지 않은 분포가 전제되어야 한다.  
+<br><br>
+
+3. percentile bootstrap CI
+reference distribution으로 empirical distribution을 이용하므로 empirical distribution이 true distribution에 가까울 경우 정확한 신뢰구간을 추정할 수 있다. 
+<br><br><br>
+sample size가 작고 정규분포를 따르지 않기 때문에 standard normal boostrap CI와 basic boostrap CI, percentile bootstrap CI는 서로 다르다. 
+
+

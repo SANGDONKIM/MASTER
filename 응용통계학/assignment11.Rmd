@@ -1,0 +1,112 @@
+---
+title: "Untitled"
+author: "Sang Don Kim"
+date: '2020 6 16 '
+output: word_document
+---
+
+
+# pr 13.1
+
+```{r}
+a <- 100
+x <- log(exp(a))
+y <- exp(log(a))
+
+x==y
+
+all.equal(x,y)
+
+```
+<br><br>
+
+# pr 13.6
+
+```{r}
+f <- function(x, theta, eta){
+  a <-  1/pi*atan(abs((x-eta)/theta))
+  if (x>=0) {
+    result <- a + 0.5
+  } else {
+    result <- 0.5 - a
+  }
+  result
+}
+
+f(x = 2, theta = 1, eta = 0)
+pcauchy(2)
+f(x = -2, theta = 1, eta = 0)
+pcauchy(-2)
+
+```
+<br><br>
+
+
+# pr 14.1 
+
+```{r}
+library(boot)
+A1 <- rbind(c(2, 1, 1), c(1, -1, 3))
+b1 <- c(2, 3)
+a <- c(4, 2, 9)  
+simplex(a = a, A1 = A1, b1 = b1, maxi = TRUE)
+```
+<br><br>
+
+
+# pr 14.2
+
+```{r}
+solve.game <- function(A) {
+  min.A <- min(A)
+  A <- A - min.A   
+  max.A <- max(A)
+  A <- A / max(A)
+  m <- nrow(A)
+  n <- ncol(A)
+  it <- n^3
+  a <- c(rep(0, m), 1) 
+  A1 <- -cbind(t(A), rep(-1, n)) 
+  b1 <- rep(0, n)
+  A3 <- t(as.matrix(c(rep(1, m), 0))) 
+  b3 <- 1
+  sx <- simplex(a=a, A1=A1, b1=b1, A3=A3, b3=b3,
+                maxi=TRUE, n.iter=it)
+  
+  a <- c(rep(0, n), 1) 
+  A1 <- cbind(A, rep(-1, m))
+  b1 <- rep(0, m)
+  A3 <- t(as.matrix(c(rep(1, n), 0)))
+  b3 <- 1
+  sy <- simplex(a=a, A1=A1, b1=b1, A3=A3, b3=b3,
+                maxi=FALSE, n.iter=it)
+  
+  soln <- list("A" = A * max.A + min.A,
+               "x" = sx$soln[1:m],
+               "y" = sy$soln[1:n],
+               "v" = sx$soln[m+1] * max.A + min.A)
+  soln
+}
+
+
+#enter the payoff matrix
+A <- matrix(c(  0,-2,-2,3,0,0,4,0,0,
+                2,0,0,0,-3,-3,4,0,0,
+                2,0,0,3,0,0,0,-4,-4,
+                -3,0,-3,0,4,0,0,5,0,
+                0,3,0,-4,0,-4,0,5,0,
+                0,3,0,0,4,0,-5,0,-5,
+                -4,-4,0,0,0,5,0,0,6,
+                0,0,4,-5,-5,0,0,0,6,
+                0,0,4,0,0,5,-6,-6,0), 9, 9)
+
+B <- A+2
+
+library(boot)  
+
+s <- solve.game(B)
+round(cbind(s$x, s$y), 7)
+s$v
+
+```
+
